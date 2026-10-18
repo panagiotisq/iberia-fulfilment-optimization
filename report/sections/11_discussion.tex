@@ -1,0 +1,31 @@
+\section{Discussion, limitations and next steps}\label{sec:discussion}
+
+\paragraph{What carries over to a production fulfilment network.}
+The pipeline is modular in the same way production planning stacks are:
+\begin{itemize}
+  \item forecasters produce quantiles;
+  \item a scenario layer adds dependence;
+  \item a stochastic optimiser commits capacity;
+  \item a fast LP-dual controller assigns orders against that capacity.
+\end{itemize}
+Each layer can be replaced without touching the others, and each comes with its own evaluation: proper scores, joint-calibration scores, statistical optimality gaps and regret to a clairvoyant benchmark.
+The \emph{decision-focused} evaluation of \cref{sec:value-forecast} is the piece we would most want in production.
+It prices forecast improvements in euros per day, which is the currency in which forecasting and planning teams should negotiate their roadmaps.
+
+\paragraph{Limitations.}
+\begin{enumerate}
+  \item \textbf{Synthetic data.} All demand is simulated. The generative model was designed to contain the phenomena that make the real problem hard: events, holidays, promotions, weather, correlated shocks and overdispersion. It nevertheless remains a model, and real data would contain regime changes, censored demand (stock-outs) and assortment effects that it lacks. The upside of this choice is that it enables the oracle comparisons that are impossible with real data.
+  \item \textbf{Stylised network and costs.} Sites, capacities and costs are plausible, not real. The structural conclusions (pooling, the role of recourse flexibility, the event-day risk of naive forecasts) are robust to the exact numbers; the euro amounts are not.
+  \item \textbf{Single-unit shipments.} Multi-item orders introduce split-shipment costs and the correlated rounding problem of \citet{jasin2015,ma2023}. The online simulator would need order-level decisions.
+  \item \textbf{Single-day horizon.} Unshipped units are penalised but not carried over. A rolling multi-day model, with backlog dynamics and next-day promise re-planning, would turn the two-stage model into a multi-stage one.
+  \item \textbf{Exogenous inventory.} Inventory placement, which ultimately determines which FCs \emph{can} ship on time, is taken as given. Joint inventory placement and capacity planning is a natural (and harder) extension.
+  \item \textbf{Network size.} The decomposition is fast for the Iberian network but not yet for a network twice its size (\cref{sec:computation}): the serial master MIP is the bottleneck.
+\end{enumerate}
+
+\paragraph{Next steps.}
+\begin{itemize}
+  \item \emph{Forecasting:} fine-tune the foundation model with covariates; hierarchical reconciliation of the zone-level forecasts to the national level; a copula with a factor structure (national, regional and category factors) instead of a shrunk full correlation.
+  \item \emph{Optimisation:} branch-and-Benders-cut in a single search tree with lazy constraints; Magnanti--Wong or Papadakos Pareto-optimal cuts; a risk-averse objective (CVaR of the daily cost) through the standard Rockafellar--Uryasev reformulation, which keeps the Benders structure.
+  \item \emph{Learning:} a learned surrogate of the recourse function, trained on the millions of subproblem solutions the decomposition produces, to warm-start the master or screen scenarios.
+  \item \emph{Online control:} bid prices from a stochastic rather than a deterministic fluid LP, and multi-armed-bandit tuning of the re-solve schedule against live regret.
+\end{itemize}

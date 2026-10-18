@@ -1,0 +1,18 @@
+\section{Planning results}\label{sec:planresults}
+
+\Cref{fig:planmap} shows a typical day-ahead plan.
+Most trucks run on short, next-day-feasible lanes out of the large Madrid, Barcelona and Seville sites; local lanes, from an FC to the sort centre of its own city, are hidden under the markers.
+The service map reveals the structural weakness of the network.
+Galicia and especially northern Portugal can be reached overnight only from the small Asturias site, so a large part of their demand is delivered on day two.
+We come back to this in \cref{sec:network}.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{plan_map}
+  \caption{(a) Day-ahead SP plan for 5 March 2026 with LightGBM+copula scenarios: line width is proportional to the number of scheduled trucks per lane (blue: next-day lane; orange: late lane); FC marker size is proportional to the scheduled crews. (b) Expected share of next-day deliveries per province under this plan, over 300 true demand scenarios.}
+  \label{fig:planmap}
+\end{figure}
+
+\input{sections/07a_saa}
+\input{sections/07b_flex}
+\input{sections/07c_value}

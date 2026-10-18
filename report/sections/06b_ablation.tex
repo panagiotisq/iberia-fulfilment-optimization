@@ -1,0 +1,27 @@
+\paragraph{Ablation.}
+\begin{table}[t]
+\centering\small
+\caption{Ablation of the Benders components ($N=50$, 24 workers, three regular test days, 900\,s limit). Each row adds one component to the row above, up to ``+Jensen (phase 1)'', which is the configuration used everywhere else. The last three rows are variations of it. Master: share of the time spent in the master problem. $^\dagger$Time limit reached on at least one day.}\label{tab:ablation}
+\resizebox{\linewidth}{!}{\input{tables/ablation}}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{convergence}
+  \caption{Convergence of the ablation variants on 5 March 2026. (a) Optimality gap against time. Dashed: gap of the LP relaxation during the LP phase; solid: true gap of the integer problem (best integer solution vs.\ best bound). Dotted line: the 0.05\% target. (b) Lower bound by iteration; the Jensen block makes the first bound almost tight.}
+  \label{fig:convergence}
+\end{figure}
+
+\Cref{tab:ablation,fig:convergence} isolate the contribution of each component.
+\begin{itemize}
+  \item \textbf{Classic multi-cut Benders} reaches the 0.05\% target on only one of the three days within 900\,s. In its first ten iterations the cuts carry almost no information about the capacity structure and the lower bound stays flat (\cref{fig:convergence}b).
+  \item \textbf{The LP phase} is the largest single gain: it generates most cuts from cheap master LPs, and the time falls to 54\,s on average.
+  \item \textbf{In-out stabilisation} reduces the number of iterations by 40\% and the mean time to 38\,s. It is not uniformly better: on one of the three days it is slower than the LP phase alone (48\,s vs.\ 33\,s).
+  \item \textbf{The Jensen block} gives the master a valid, scenario-independent approximation of the recourse from the first iteration. The first lower bound is within 1.2\% of the optimum, the iterations drop to 18 and the time to 10\,s. In total the method is at least $90\times$ faster than classic Benders; ``at least'' because classic Benders hit the time limit on two days.
+  \item \textbf{Variations.} Keeping the Jensen block in the integer phase does not help on average and is slower on one day (23\,s): it adds rows to every master MIP. Four Jensen blocks instead of one save another 25\% (7.6\,s). We keep the simpler single block.
+  \item \textbf{Single-cut} Benders (one aggregated cut per iteration) does not reach the target in 900\,s even with all other components: aggregating 50 scenarios into one cut throws away most of the information returned by the subproblems.
+\end{itemize}
+In every variant the master accounts for 96--100\% of the time. The subproblems, warm-started and solved in parallel, are not the bottleneck; this again points to branch-and-Benders-cut as the next step.
+
+\paragraph{Larger networks.}
+All results above are for the Iberian network (130 integer variables). On a synthetic network of the same size (10 FCs, 12 SCs, 65 zones, $N=50$), Benders behaves as on the real one: 26\,s and 22 iterations. On a synthetic network twice as large (20 FCs, 25 SCs, 150 zones, 520 integer variables), it did not reach the 0.05\% target within an hour, and we stopped the experiment. Since the subproblems are not the bottleneck, this is the serial master MIP again: scaling to national networks with hundreds of sites needs branch-and-Benders-cut, or a master that is itself decomposed by region. We list this as the main computational limitation (\cref{sec:discussion}).

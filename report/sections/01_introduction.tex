@@ -1,0 +1,44 @@
+\section{Introduction}\label{sec:intro}
+
+Every evening, an e-commerce fulfilment organisation commits money it cannot easily take back.
+Line-haul trucks are tendered to carriers for the next night.
+Labour shifts are scheduled at every fulfilment centre.
+These commitments are made against a forecast; the orders they will serve have not been placed yet.
+The next day, millions of units arrive one by one and each must be assigned, irrevocably, to an FC that has the item, the labour and space on a truck, and ideally a lane short enough to keep the next-day promise.
+When the committed capacity is in the wrong place, the network pays for spot trucks, overtime, late deliveries and broken promises.
+
+This report builds the complete chain of models behind these decisions for a realistically dimensioned network covering mainland Spain and Portugal:
+65 demand zones, 10 FCs, 12 sort centres, 4 product categories and about 450,000 units per day, rising beyond a million on Black Friday and Prime Day.
+The aim is to treat the three layers, \emph{forecast} $\rightarrow$ \emph{plan} $\rightarrow$ \emph{assign}, as one system and to evaluate each layer by what it costs the next one.
+
+\begin{keybox}
+\textbf{Executive summary.}
+\begin{itemize}[leftmargin=1.2em]
+  \item \textbf{Forecasting.} A global LightGBM quantile model with event-aligned features halves the day-ahead error of a seasonal-naive forecast (wMAPE 24.3\% $\to$ 11.9\%), and beats a zero-shot foundation model (Chronos-Bolt, 15.4\%). Rolling conformal calibration fixes its overconfidence (80\% intervals: 71.6\% $\to$ 79.3\% coverage). A Gaussian copula on forecast residuals makes the \emph{national} uncertainty honest: the coverage of a 90\% interval rises from 30\% to 82\%.
+  \item \textbf{Planning.} The day-ahead truck and labour plan is a two-stage stochastic MIP. It has 130 integer variables and a recourse LP per scenario, i.e.\ 254{,}000 columns at 100 scenarios. Benders decomposition with an LP phase, in-out stabilisation and a partial-decomposition (Jensen) block solves it to 0.05\% in seconds: at least $90\times$ faster than classic Benders and $12\times$ faster than the extensive form at 100 scenarios. Sample average approximation (SAA) bounds certify the solutions to within 0.4\% of the true optimum (95\% confidence).
+  \item \textbf{Value of forecasts.} Scored on the true demand distribution over 31 test days, the remaining forecast error costs \EUR{16}k per day (about \EUR{6}M per year). A per-series P90 buffer, a common heuristic, wastes \EUR{96}k per day. The stochastic plan beats the deterministic plan by \EUR{3}--\EUR{10}k per day when same-day recourse is cheap, and by \EUR{39}k per day when it is expensive. In that regime copula scenarios are worth \EUR{20}k per day more than independent ones, and the hedge flips from under- to over-provisioning exactly where newsvendor theory predicts.
+  \item \textbf{Speed vs.\ cost vs.\ CO$_2$.} The Pareto frontier puts a price on the next-day promise. Raising the next-day share from 83.5\% to 91\% costs only \EUR{8}k per day, after which the frontier turns vertical at a ceiling set by the network. Speed is bought by routing, not by extra capacity, and it raises line-haul CO$_2$ by 8\%.
+  \item \textbf{Online assignment.} Assigning orders greedily costs 7.1\% more than a clairvoyant LP. LP-dual bid prices re-solved hourly close 67\% of the gap, and fluid LP tracking closes 79\%: \EUR{110}k per day.
+  \item \textbf{Investment what-if.} A fulfilment centre near Lisbon raises next-day delivery in northern Portugal by up to 85 percentage points, cuts CO$_2$ by 10\% and saves \EUR{9.3}M per year in operating cost (\EUR{18.3}M including the value of speed).
+\end{itemize}
+\end{keybox}
+
+\paragraph{Contributions.}
+\begin{enumerate}
+  \item An end-to-end, reproducible forecast-to-fulfilment pipeline: a generative demand model with known ground truth, probabilistic forecasting with conformal calibration and copula scenarios, a two-stage stochastic capacity planner, and an online LP-based controller, all evaluated in one consistent cost model.
+  \item A Benders implementation for the planning problem that combines warm-started parallel subproblems, an LP phase, in-out stabilisation, partial decomposition justified by a Jensen bound (\cref{prop:jensen}) and an adaptive master tolerance. An ablation study isolates the contribution of each component (\cref{sec:computation}).
+  \item A \emph{decision-focused} evaluation of forecasts. Because the data-generating process is known, every plan is scored against the true conditional demand distribution. This prices forecast errors, buffer heuristics and dependence modelling in euros per day, and shows \emph{when} each matters.
+  \item Multi-objective and strategic analyses with the same machinery: exact cost--speed and cost--CO$_2$ frontiers (including unsupported Pareto points that a weighted sum misses), and the business case of a new fulfilment centre.
+\end{enumerate}
+
+\paragraph{Outline.}
+\begin{itemize}
+  \item \Cref{sec:related} reviews related work.
+  \item \Cref{sec:setting} describes the network, the costs and the demand model.
+  \item \Cref{sec:forecasting} develops the forecasts and the scenario generator.
+  \item \Cref{sec:planning} formulates the stochastic planning problem and the decomposition, which \cref{sec:computation} benchmarks computationally.
+  \item \Cref{sec:planresults} reports the planning results: statistical quality, value of the stochastic solution, value of forecasts.
+  \item \Cref{sec:pareto} covers the multi-objective analysis, \cref{sec:online} the online assignment, and \cref{sec:network} the network-design what-if.
+  \item \Cref{sec:discussion} discusses limitations and next steps.
+\end{itemize}
+All code, data generation and experiments are available and reproducible from a single \texttt{make} target (\cref{app:repro}).

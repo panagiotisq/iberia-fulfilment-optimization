@@ -1,0 +1,13 @@
+\begin{abstract}
+\noindent
+We study the forecast-to-fulfilment decision chain of an e-commerce network covering mainland Spain and Portugal: 65 demand zones, 10 fulfilment centres, 12 sort centres, four product categories and about 450,000 units per day.
+Demand is produced by a generative model with known ground truth, which lets us evaluate every decision against the \emph{true} conditional demand distribution.
+\begin{itemize}[leftmargin=1.2em]
+  \item \textbf{Forecasting.} A global LightGBM quantile model with event-aligned features and rolling conformal calibration halves the day-ahead error of a seasonal-naive baseline (wMAPE 11.9\% vs.\ 24.3\%) and outperforms a zero-shot time-series foundation model (Chronos-Bolt, 15.4\%). A Gaussian copula on probability-integral-transform residuals turns the marginal quantiles into calibrated joint scenarios.
+  \item \textbf{Planning.} Trucks and labour are planned the day before with a two-stage stochastic mixed-integer program whose recourse is the order-assignment LP. A Benders decomposition with an LP phase, in-out stabilisation, a Jensen-based partial decomposition and parallel warm-started subproblems solves 100-scenario instances (254,000 columns) to 0.05\% in seconds: at least $90\times$ faster than classic Benders and $12\times$ faster than the extensive form solved by HiGHS, and it scales to 1000 scenarios (2.5 million columns) in 41\,s. Sample average approximation bounds certify the plans.
+  \item \textbf{Decision-focused evaluation.} The remaining forecast error costs \EUR{16}k per day; a per-series P90 buffer costs \EUR{96}k per day; the stochastic plan beats the deterministic one by a margin that grows sharply when same-day recourse is expensive.
+  \item \textbf{Speed and emissions.} Exact cost--speed--CO$_2$ frontiers show that next-day delivery is cheap up to a network-imposed ceiling.
+  \item \textbf{Online assignment.} LP-based fluid tracking closes 79\% of the regret of greedy assignment with respect to a clairvoyant benchmark.
+  \item \textbf{Investment.} The same models value a new fulfilment centre near Lisbon, which raises next-day delivery in Portugal from 54\% to 93\% and saves \EUR{9}--\EUR{18}M per year.
+\end{itemize}
+\end{abstract}

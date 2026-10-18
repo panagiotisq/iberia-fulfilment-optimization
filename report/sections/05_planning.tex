@@ -1,0 +1,124 @@
+\section{Day-ahead capacity planning as a two-stage stochastic program}\label{sec:planning}
+
+\subsection{Formulation}
+Every evening the planner commits two kinds of capacity for the next day before demand is known:
+\begin{itemize}
+  \item scheduled line-haul trucks $y_{ih}\in\Z_+$ on every lane;
+  \item labour crews $w_i\in\Z_+$ at every FC.
+\end{itemize}
+Both are cheap when committed in advance and expensive to adjust on the day.
+Once demand $\bfd$ is revealed, units are assigned to FCs, and overtime ($o_i$), spot capacity ($z_{ih}$) and unshipped units ($u_{jk}$) are the recourse actions.
+Let $\A=\{(i,j,k): \text{FC } i \text{ stocks } k\}$ be the 2145 assignment arcs, $h(j)$ the SC of zone $j$, and $\ell_{ij}\in\{0,1\}$ the late indicator of lane $(i,h(j))$.
+The \textbf{first stage} is
+\begin{equation}\label{eq:first}
+\begin{aligned}
+  \min_{\bfy,\bfw}\ \ & \sum_{i,h} F_{ih}\,y_{ih} + L\sum_i w_i + \E_{\bfd}\big[\,Q(\bfy,\bfw,\bfd)\,\big]\\
+  \text{s.t.}\ \ & \textstyle\sum_h y_{ih}\le D_i,\quad w_i\le W_i\quad \forall i, \qquad \bfy\in\Z_+^{\I\times\Hs},\ \bfw\in\Z_+^{\I},
+\end{aligned}
+\end{equation}
+and the \textbf{recourse} (second stage) is the linear program
+\begin{align}
+  Q(\bfy,\bfw,\bfd)=\min\ & \textstyle\sum_{(i,j,k)\in\A}\big(c^{\mathrm{fc}}_i + c^{\mathrm{lm}}_j + \lambda\,\ell_{ij}\big)x_{ijk} \nonumber\\
+     & \textstyle\quad + c^{\mathrm{ot}}\sum_i o_i + \sum_{i,h} s_{ih} z_{ih} + (p+\lambda)\sum_{j,k}u_{jk} \label{eq:rec-obj}\\
+  \text{s.t. }\ & \textstyle\sum_{j} x_{ijk} \le \mathrm{Inv}_{ik} & \forall i,k \quad &[\text{inventory}] \label{eq:inv}\\
+  & \textstyle\sum_{j,k} l_k x_{ijk} - o_i \le \pi\, w_i & \forall i \quad &[\text{regular labour}] \label{eq:lab}\\
+  & o_i \le \rho\,\pi\, w_i & \forall i \quad &[\text{overtime cap}] \label{eq:ot}\\
+  & \textstyle\sum_{j:h(j)=h}\sum_k v_k x_{ijk} - z_{ih} \le Q\, y_{ih} & \forall i,h \quad &[\text{truck capacity}] \label{eq:lane}\\
+  & \textstyle\sum_{i} x_{ijk} + u_{jk} = d_{jk} & \forall j,k \quad &[\text{demand}] \label{eq:dem}\\
+  & x,o,z,u\ge 0. \nonumber
+\end{align}
+The recourse is a \emph{capacitated transportation problem with side constraints} (433 rows and 2535 columns per scenario).
+It is the same LP that, with remaining capacities and remaining expected demand, drives the online bid prices of \cref{sec:online}.
+Two features make the first-stage decision a genuinely stochastic one:
+\begin{itemize}
+  \item scheduled capacity is cheaper than its flexible substitutes (spot is $1.8\times$ and overtime $1.6\times$ the scheduled rate), but it is bought before demand is known;
+  \item the network can \emph{pool} risk by re-routing units between FCs, at the price of lateness, so the right amount of capacity depends on the joint distribution of demand, not only on its marginals.
+\end{itemize}
+
+\subsection{Structural properties}
+Write the recourse compactly as $Q(\bfy,\bfw,\bfd)=\min\{c^\top x: Ax\le b(\bfy,\bfw,\bfd)\}$, where the right-hand side $b$ is affine in $(\bfy,\bfw,\bfd)$ and the demand rows are equalities.
+
+\begin{proposition}[Complete recourse and convexity]\label{prop:recourse}
+For every $(\bfy,\bfw)\ge 0$ and $\bfd\ge 0$ the recourse LP is feasible and bounded. $Q$ is jointly convex and piecewise linear in $(\bfy,\bfw,\bfd)$. With $\pi^{\star}$ an optimal dual vector, the vector
+\begin{equation}\label{eq:subgrad}
+  g_{y,ih} = Q\,\pi^{\star}_{\mathrm{lane},ih},\qquad g_{w,i} = \pi\,\big(\pi^{\star}_{\mathrm{lab},i} + \rho\,\pi^{\star}_{\mathrm{ot},i}\big)
+\end{equation}
+is a subgradient of $Q(\cdot,\cdot,\bfd)$ at $(\bfy,\bfw)$, and $g_{y},g_{w}\le 0$.
+\end{proposition}
+\begin{proof}
+$(x,o,z,u)=(0,0,0,\bfd)$ is feasible, and all costs are non-negative, so the LP is feasible and bounded below by $0$.
+By LP duality, $Q = \max\{b(\bfy,\bfw,\bfd)^\top\pi : \pi \in \Pi\}$, where the dual feasible set $\Pi$ does not depend on $(\bfy,\bfw,\bfd)$.
+A pointwise maximum of affine functions of an affine argument is convex and piecewise linear.
+For an optimal $\pi^\star$ and any other $(\bfy',\bfw')$, dual feasibility gives $Q(\bfy',\bfw',\bfd)\ge b(\bfy',\bfw',\bfd)^\top\pi^\star = Q(\bfy,\bfw,\bfd) + \pi^{\star\top}(b'-b)$.
+Since $b$ is affine with $\partial b/\partial y_{ih}=Q$ on the lane row, and $\partial b/\partial w_i=\pi$ and $\rho\pi$ on the labour and overtime rows, the result follows.
+Duals of $\le$ rows are non-positive in a minimisation, hence the sign.
+\end{proof}
+
+\begin{proposition}[Jensen bound for scenario groups]\label{prop:jensen}
+Let $C\subseteq\Sc$ be a group of scenarios with total probability $P_C$ and mean demand $\bar\bfd_C=\sum_{s\in C}(p_s/P_C)\,\bfd^s$. Then for all $(\bfy,\bfw)$
+\[ \textstyle\sum_{s\in C} p_s\, Q(\bfy,\bfw,\bfd^s) \;\ge\; P_C\, Q(\bfy,\bfw,\bar\bfd_C). \]
+\end{proposition}
+\begin{proof} Immediate from convexity of $Q$ in $\bfd$ (\cref{prop:recourse}) and Jensen's inequality. \end{proof}
+
+The Jensen bound is what makes \emph{partial} Benders decomposition \citep{crainic2021} valid here.
+We keep a copy of the recourse LP of the mean demand of each scenario group \emph{inside} the master problem and link it to the scenario variables $\theta_s$.
+The master then ``knows'' from the very first iteration how capacity is consumed by demand.
+Without it, the master only learns this through cuts, one at a time.
+
+\subsection{Sample average approximation}
+The expectation in \eqref{eq:first} is replaced by an average over $N$ scenarios $\bfd^1,\dots,\bfd^N$, drawn from the forecast distribution of \cref{sec:scenarios}; this is sample average approximation (SAA, \citep{kleywegt2002,shapiro2009}).
+The SAA is a large mixed-integer program.
+Its deterministic equivalent (extensive form) has $130$ integer and $2535N$ continuous variables and $433N+10$ rows, so for $N=100$ it has a quarter of a million columns.
+\Cref{sec:saa} quantifies the statistical quality of the SAA solutions with the Monte Carlo bounds of \citet{mak1999}.
+
+\subsection{Benders decomposition}\label{sec:benders}
+The SAA is solved by Benders decomposition \citep{benders1962,vanslyke1969}.
+The \textbf{master problem} keeps the first-stage variables and one epigraph variable $\theta_s$ per scenario (multi-cut, \citep{birge1988}):
+\begin{equation}\label{eq:master}
+\begin{aligned}
+ \min\ & F^\top\bfy + L\,\mathbf{1}^\top\bfw + \textstyle\sum_s p_s\theta_s\\
+ \text{s.t. }& \theta_s \ge Q_s(\hat\bfy,\hat\bfw) + g^{s\top}_{y}(\bfy-\hat\bfy) + g^{s\top}_{w}(\bfw-\hat\bfw) \quad \text{for every generated cut},\\
+ & \theta_s \ge \underline{\theta}_s,\quad \text{site limits},\quad \bfy,\bfw \text{ integer},
+\end{aligned}
+\end{equation}
+where $\underline\theta_s=\sum_{j,k}d^s_{jk}\min\{\min_i c_{ijk},\,p+\lambda\}$ is a trivial bound: every unit is either shipped at no less than its cheapest arc cost, or left unshipped.
+
+\paragraph{Implementation and enhancements.} Each of the following is evaluated in the ablation study of \cref{sec:computation}.
+\begin{enumerate}
+  \item \textbf{Warm-started subproblems.} Each worker process owns a single HiGHS LP model \citep{huangfu2018} and swaps scenarios in and out. Scenarios and first-stage values only change row bounds, so dual simplex re-optimises from the previous optimal basis. A subproblem typically takes about 5\,ms.
+  \item \textbf{Parallel subproblems.} Scenarios are partitioned across persistent worker processes.
+  \item \textbf{LP phase} \citep{mcdaniel1977}. The master's integrality is first relaxed and Benders runs to convergence on the LP relaxation. The cuts are valid for the integer master, so phase~2 starts with a good outer approximation.
+  \item \textbf{In-out stabilisation} \citep{benameur2007,fischetti2017}. In the LP phase, cuts are separated at $\tilde\bfy=\alpha\hat\bfy+(1-\alpha)\bar\bfy$, a convex combination of the master solution and a stability centre that is updated to $\tilde\bfy$; we use $\alpha=0.5$. This damps the zig-zagging of Kelley's cutting-plane method. When no cut is violated at $\tilde\bfy$, we separate at $\hat\bfy$ directly.
+  \item \textbf{Partial decomposition (Jensen blocks).} Scenarios are sorted by national volume and split into $G$ groups. The recourse LP of each group mean is added to the master together with the row $\sum_{s\in C}p_s\theta_s\ge P_C\,c^\top x^C$ (\cref{prop:jensen}). By default ($G=1$) the block is only active in the LP phase. In the integer phase it would make each master MIP heavier, and the cuts it helped to generate are kept anyway.
+  \item \textbf{Adaptive master tolerance.} In the integer phase the master is solved to a relative gap $\epsilon_k=\max\{\epsilon/4,\min(\epsilon_{k-1},\mathrm{gap}_k/4)\}$, and the master's \emph{dual} bound is used as the global lower bound. The master is thus solved only as accurately as the current Benders gap requires, without invalidating the bound. The incumbent is passed as a MIP start.
+\end{enumerate}
+Complete recourse means every master iterate is feasible, so every iterate yields a valid upper bound and only optimality cuts are needed.
+The algorithm stops at a relative gap of $\epsilon = 5\cdot 10^{-4}$.
+This is deliberately not tighter: at $N=100$ the SAA objective itself has a standard error of about $0.1\%$ (\cref{sec:saa}), so additional optimisation accuracy would be statistically meaningless.
+
+\begin{algorithm}[t]
+\caption{Two-phase Benders with partial decomposition and in-out stabilisation}\label{alg:benders}
+\small
+\begin{algorithmic}[1]
+\State Build master \eqref{eq:master} with $\theta_s\ge\underline\theta_s$, and the Jensen block(s) of the scenario group means
+\State \textbf{Phase 1:} relax integrality; $\bar\bfy\gets$ first master solution
+\Repeat
+  \State $(\hat\bfy,\hat\bfw)\gets$ solve LP master; $\mathrm{LB}\gets$ master objective
+  \State $(\tilde\bfy,\tilde\bfw)\gets\alpha(\hat\bfy,\hat\bfw)+(1-\alpha)(\bar\bfy,\bar\bfw)$
+  \State solve all $Q_s(\tilde\bfy,\tilde\bfw)$ in parallel; add the cuts; $\mathrm{UB}_{\mathrm{LP}}\gets\min(\mathrm{UB}_{\mathrm{LP}},\,\text{value at }\tilde\bfy)$; $(\bar\bfy,\bar\bfw)\gets(\tilde\bfy,\tilde\bfw)$
+\Until{$(\mathrm{UB}_{\mathrm{LP}}-\mathrm{LB})/\mathrm{UB}_{\mathrm{LP}}\le\epsilon_{\mathrm{LP}}$}
+\State \textbf{Phase 2:} deactivate the Jensen rows, restore integrality, $\epsilon_0\gets 2\cdot10^{-3}$
+\Repeat
+  \State $(\hat\bfy,\hat\bfw)\gets$ solve master MIP to gap $\epsilon_k$ (MIP start: incumbent); $\mathrm{LB}\gets\max(\mathrm{LB},\text{dual bound})$
+  \State solve all $Q_s(\hat\bfy,\hat\bfw)$ in parallel; update incumbent and UB; add violated cuts
+  \State if no cut was violated, tighten $\epsilon_k$
+\Until{$(\mathrm{UB}-\mathrm{LB})/\mathrm{UB}\le\epsilon$}
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Benchmarks for the planning paradigm}
+Besides the stochastic program (SP), two deterministic planning paradigms are evaluated.
+\begin{itemize}
+  \item \textbf{Deterministic (median).} Plan for a single point forecast, the median, using the same model with one scenario. This is the mean-value problem whose out-of-sample cost defines the value of the stochastic solution (VSS).
+  \item \textbf{Deterministic (P90).} Plan for the 90th percentile of every series. This is a common safety-buffer heuristic. It ignores that series do not peak together.
+\end{itemize}

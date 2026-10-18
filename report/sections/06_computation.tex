@@ -1,0 +1,34 @@
+\section{Computational study}\label{sec:computation}
+
+All timings are wall-clock on a 28-core workstation, with no other experiment running, to a relative optimality gap of $5\cdot10^{-4}$.
+Scenarios are drawn from the true demand distribution of a regular day unless stated otherwise.
+
+\paragraph{Extensive form vs.\ decomposition.}
+\begin{table}[t]
+\centering\small
+\caption{Extensive form (HiGHS MIP, 1800\,s limit) vs.\ Benders (\cref{alg:benders}) with 1 and 24 subproblem workers. Speed-up: extensive form vs.\ Benders with 24 workers.}\label{tab:scaling}
+\input{tables/scaling}
+\end{table}
+
+\Cref{tab:scaling} compares the deterministic equivalent solved directly by HiGHS with the decomposition.
+HiGHS is a strong MIP solver and handles the extensive form well for few scenarios: at $N=5$ it is five times faster than Benders.
+Its solve time grows superlinearly with the number of scenarios, however: 47\,s at $N=50$ and 174\,s at $N=100$, with 254{,}000 columns.
+Benders' solve time, in contrast, barely moves.
+The decomposition wins from $N=10$ with one worker and from $N=25$ with 24 workers, where pool overhead is amortised. At $N=100$ it is $12\times$ faster with 24 workers ($4\times$ with one).
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{scaling}
+  \caption{(a) Time to a 0.05\% gap as a function of the number of scenarios. (b) Parallel speed-up for $N=500$: the subproblem phase scales well, the total is limited by the serial master problem (Amdahl's law).}
+  \label{fig:scaling}
+\end{figure}
+
+\paragraph{Scaling to many scenarios and parallelism.}
+With 24 workers, Benders solves $N=1000$ (2.5 million recourse columns) in 41\,s (\cref{fig:scaling}a).
+The number of iterations is essentially independent of $N$ (16--18).
+The phase-1 Jensen block gives the master a scenario-independent description of the capacity structure, and multi-cut lets every scenario contribute its own cut in each iteration.
+Parallel subproblems scale well: the subproblem phase at $N=500$ is $16\times$ faster with 24 workers than with one (\cref{fig:scaling}b).
+The total speed-up, however, is only $3.7\times$, because the master MIP is solved serially and accounts for over 90\% of the time with many workers.
+The natural next step is therefore not more workers but a single-tree \emph{branch-and-Benders-cut}, in which cuts are added as lazy constraints inside one branch-and-bound search instead of re-solving the master MIP in every iteration.
+
+\input{sections/06b_ablation}

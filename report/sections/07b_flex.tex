@@ -1,0 +1,33 @@
+\subsection{When does stochastic planning pay?}\label{sec:flex}\label{sec:sensitivity}
+
+The modest VSS of the base case is a property of the cost structure, not of the method.
+Same-day substitutes for scheduled capacity are only 60--80\% more expensive, and overtime can add 30\%.
+We therefore vary the \emph{flexibility of recourse} on four regular days spread over the year:
+\begin{itemize}
+  \item the spot premium, from $1.4\times$ to $3.5\times$;
+  \item the overtime cap, 30\% or 10\% of planned labour;
+  \item the penalty for an unshipped unit, from \EUR{9} to \EUR{50}.
+\end{itemize}
+For each setting we compute the VSS and the reduction of the 95\% conditional value-at-risk (CVaR$_{95}$, the mean of the worst 5\% of days) on the true distribution.
+In a second experiment (10 regular days) we repeat the forecast-based comparison of \cref{sec:value-forecast} under base and inflexible recourse.
+
+\begin{table}[t]
+\centering\small
+\caption{Value of the stochastic solution as a function of recourse flexibility (means over four regular test days; SP and mean-value plans evaluated on 1000 true scenarios). $\Delta$CVaR$_{95}$: reduction of the expected cost of the worst 5\% of days achieved by the SP plan.}\label{tab:sensitivity}
+\resizebox{\linewidth}{!}{\input{tables/sensitivity}}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{flex}
+  \caption{(a) VSS (solid) and CVaR$_{95}$ reduction (dashed) against the spot premium, for two overtime caps. (b) Difference between the trucks planned by the SP and by the mean-value plan: the hedge changes sign where the newsvendor critical ratio crosses one half. (c) Daily saving of the forecast-based SP plans over the deterministic median plan, paired by day (bars: means).}
+  \label{fig:flex}
+\end{figure}
+
+\Cref{tab:sensitivity,fig:flex} give a clear answer.
+\begin{enumerate}
+  \item \textbf{The value of stochastic planning grows with the cost of same-day flexibility.} The VSS triples, from \EUR{2.6}k to \EUR{7.7}k per day, between the base case and the inflexible case (spot $3.5\times$, overtime cap 10\%). The protection of the bad tail grows much faster: the SP plan lowers the CVaR$_{95}$ of the daily cost by \EUR{47}k per day in the inflexible case, against \EUR{2}k in the base case. When recourse is expensive, the stochastic plan is mainly an insurance against bad days.
+  \item \textbf{The direction of the hedge follows newsvendor theory} (panel b). If $c$ is the per-unit price of scheduled capacity and $\gamma c$ that of its same-day substitute, under-provisioning costs $(\gamma-1)c$ per unit and over-provisioning $c$. The critical ratio $(\gamma-1)/\gamma$ is therefore below one half when $\gamma<2$. In that regime the SP buys \emph{fewer} trucks than the mean-value plan (up to 24 fewer at $\gamma=1.4$); above it, it buys \emph{more} (12 more at $\gamma=3.5$). A planner who always adds a safety margin is right only in the second regime.
+  \item \textbf{Joint calibration pays when recourse is expensive} (panel c). With real LightGBM forecasts, the SP plans beat the deterministic median plan by \EUR{5}k (independent scenarios) and \EUR{10}k per day (copula) under base recourse. Under inflexible recourse they do so by \EUR{19}k and \EUR{39}k per day, on all 10 days. The copula's advantage over independent scenarios grows from \EUR{5}k to \EUR{20}k per day (better on 8 of 10 days). This resolves the null result of \cref{sec:value-forecast}. Dependence modelling matters exactly when the network cannot cheaply absorb a correlated, network-wide surprise.
+  \item \textbf{The unshipped-unit penalty} has little effect on the VSS once it exceeds the cost of overtime plus spot (\EUR{15}--\EUR{50}). At \EUR{9} (\cref{sec:setting}) leaving 1.6--1.8\% of demand unshipped becomes the cheapest recourse, which we consider an unrealistic operating regime for a next-day network.
+\end{enumerate}

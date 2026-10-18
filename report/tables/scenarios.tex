@@ -1,0 +1,9 @@
+\begin{tabular}{@{}lrrrrr@{}}\toprule
+Scenario generator & Energy & Variogram & \multicolumn{2}{c}{National PI coverage (\%)} & National \\
+ & score & score & 50\% & 90\% & CV (\%) \\ \midrule
+Seasonal naive + CP, independent & 18.72 & 1068 & 16 & 34 & 5.4 \\
+Seasonal naive + CP, copula & 17.53 & 1013 & 60 & 91 & 25.7 \\
+LightGBM-Q + CP, independent & 8.23 & 241 & 13 & 30 & 1.9 \\
+LightGBM-Q + CP, copula & 8.03 & 242 & 40 & 82 & 6.9 \\
+True conditional distribution & 5.88 & 162 & 52 & 88 & 4.8 \\
+\bottomrule\end{tabular}

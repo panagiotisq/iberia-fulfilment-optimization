@@ -1,0 +1,52 @@
+\section{Notation}\label{app:notation}
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+Symbol & Meaning \\ \midrule
+$\I,\Hs,\J,\K$ & FCs (10), sort centres (12), demand zones (65), product categories (4)\\
+$h(j)$ & sort centre serving zone $j$ \\
+$\A$ & arcs $(i,j,k)$ with FC $i$ stocking category $k$ (2145)\\
+$\ell_{ij}$ & 1 if lane $(i,h(j))$ misses the overnight window (late delivery)\\
+$y_{ih}$, $w_i$ & first stage: scheduled trucks per lane, crews per FC \\
+$x_{ijk}$, $o_i$, $z_{ih}$, $u_{jk}$ & recourse: assignment, overtime, spot capacity, unshipped units\\
+$F_{ih}$, $L$, $Q$, $\pi$ & truck cost, crew cost, truck capacity, crew capacity \\
+$s_{ih}$, $c^{\mathrm{ot}}$, $\rho$ & spot cost per pkg-eq., overtime cost per labour unit, overtime cap \\
+$v_k$, $l_k$ & volume and labour content of a unit of category $k$ \\
+$p$, $\lambda$ & cost of an unshipped unit, cost of a late unit (price of speed)\\
+$\mathrm{Inv}_{ik}$ & available-to-ship inventory\\
+$Q(\bfy,\bfw,\bfd)$ & recourse value for demand $\bfd$; $Q_s$ for scenario $s$ \\
+$\theta_s$ & master epigraph variable of scenario $s$ \\ \bottomrule
+\end{tabular}
+\end{center}
+
+\section{Forecasting features}\label{app:features}
+For origin $\tau$, horizon $h\in\{1,\dots,7\}$ and series $(j,k)$ the target is $y_{\tau+h,jk}/\bar y_{\tau,jk}$, where $\bar y_{\tau,jk}$ is the trailing 28-day mean.
+The features are:
+\begin{itemize}
+  \item \emph{Identifiers}: zone, category, country, $h$, $\log\bar y_{\tau,jk}$.
+  \item \emph{Lags} (all divided by $\bar y_{\tau,jk}$): $y_{\tau-l}$ for $l=0..6$; the same weekday one and two weeks before the target; the mean of the same weekday over 8 weeks; the 7-day mean.
+  \item \emph{Momentum}: national 7-day/28-day ratio and last day/28-day ratio per category; regional 7/28-day ratio.
+  \item \emph{Event-aligned year-over-year}: last year's national and series level at the event-aligned comparable date (the same offset from Black Friday or Prime, otherwise 52 weeks earlier), relative to last year's 28-day level at the aligned origin.
+  \item \emph{Calendar of the target day}: weekday, month, Black Friday offset, Prime Day and Prime October indicators (and the day after), Christmas ramp and trough, New Year's Eve, Reyes ramp, \emph{rebajas}, back-to-school, zone holiday status (holiday or day after), announced promotion lift of the category.
+  \item \emph{Origin context}: holiday status and event indicator of the origin day, number of event days in the scale window, promotion at the origin.
+  \item \emph{Weather forecast for the target day}: temperature, temperature anomaly and rain probability, with noise growing in $h$.
+\end{itemize}
+LightGBM hyper-parameters: 600 rounds, learning rate 0.05, 63 leaves, at least 400 samples per leaf, feature fraction 0.8, bagging fraction 0.7, $L_2$ regularisation 1.
+Day-of-year Fourier terms were replaced by the month after validation (\cref{sec:forecasting}).
+
+\section{Reproducibility}\label{app:repro}
+All code is in the accompanying repository (\texttt{fulfillopt} Python package, about 2,600 lines, plus 1,700 lines of experiment scripts and unit tests).
+The pipeline is reproducible with \texttt{make all}.
+All randomness is seeded: the demand history uses seed 2026, and scenario and evaluation seeds are derived from the day index.
+Solvers are HiGHS 1.15.1 (via \texttt{highspy}), LightGBM 4.7 and Chronos-Bolt (small/base, zero-shot, on an RTX 5070 Ti GPU).
+Experiments ran on a 28-core Linux workstation with 125\,GB of memory; timings in \cref{sec:computation} were taken with no other experiment running.
+
+The unit tests check:
+\begin{enumerate}
+  \item that Benders cuts are valid under-estimators of the recourse function;
+  \item that every Benders variant reaches the extensive-form optimum within tolerance;
+  \item that out-of-sample evaluation reproduces the in-sample objective;
+  \item that quantile functions round-trip through probability integral transforms;
+  \item that copula sampling preserves marginals and the target correlation;
+  \item that every online policy conserves units, respects capacities and never beats the hindsight bound.
+\end{enumerate}

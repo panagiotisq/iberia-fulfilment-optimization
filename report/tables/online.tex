@@ -1,0 +1,9 @@
+\begin{tabular}{@{}lrrrrrrrrr@{}}\toprule
+Policy & Recourse cost & Regret & s.e. & Gap closed & On-time & Unmet & Spot & Overtime & LPs \\
+ & \EUR{}/day & \% & & \% & \% & \% & pkg-eq & labour u. & \\ \midrule
+Greedy & 2{,}300{,}479 & 7.10 & 0.41 & 0 & 87.52 & 1.08 & 146{,}666 & 54{,}897 & 0 \\
+Bid price (static) & 2{,}273{,}493 & 5.56 & 0.46 & 22 & 88.42 & 1.07 & 123{,}145 & 58{,}348 & 1 \\
+Bid price (re-solve) & 2{,}205{,}156 & 2.35 & 0.45 & 67 & 90.37 & 0.89 & 77{,}349 & 48{,}941 & 24 \\
+Fluid LP tracking & 2{,}190{,}863 & 1.53 & 0.48 & 79 & 90.94 & 0.91 & 64{,}586 & 48{,}982 & 24 \\
+Hindsight LP & 2{,}116{,}083 & 0.00 & 0.00 & 100 & 91.54 & 0.61 & 47{,}906 & 46{,}302 & 1 \\
+\bottomrule\end{tabular}

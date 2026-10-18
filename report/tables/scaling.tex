@@ -1,0 +1,10 @@
+\begin{tabular}{@{}rrrrrrrrr@{}}\toprule
+ & \multicolumn{3}{c}{Extensive form (HiGHS MIP)} & \multicolumn{4}{c}{Benders} & Speed-up \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-8}
+$N$ & columns & time (s) & gap (\%) & 1 worker (s) & 24 workers (s) & gap (\%) & iter. & \\ \midrule
+5 & 12{,}805 & 3 & 0.008 & 14.9 & 15.0 & 0.050 & 45 & 0.2$\times$ \\
+10 & 25{,}480 & 6 & 0.016 & 4.0 & 9.7 & 0.041 & 33 & 0.6$\times$ \\
+25 & 63{,}505 & 23 & 0.015 & 7.0 & 4.0 & 0.048 & 20 & 5.7$\times$ \\
+50 & 126{,}880 & 48 & 0.042 & 24.2 & 16.6 & 0.028 & 18 & 2.9$\times$ \\
+100 & 253{,}630 & 174 & 0.037 & 43.2 & 14.6 & 0.039 & 17 & 12$\times$ \\
+\bottomrule\end{tabular}

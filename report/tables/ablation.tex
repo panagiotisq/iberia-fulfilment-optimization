@@ -1,0 +1,10 @@
+\begin{tabular}{@{}lrrrrrrr@{}}\toprule
+Variant & mean time (s) & max time (s) & iterations & LP iter. & cuts & max gap (\%) & master (\%) \\ \midrule
+classic$^\dagger$ & 927.0 & 963.7 & 95 & 0 & 4750 & 0.076 & 100 \\
++LP phase & 53.5 & 90.5 & 88 & 86 & 4416 & 0.045 & 97 \\
++in-out & 38.2 & 47.6 & 52 & 49 & 2616 & 0.037 & 97 \\
++Jensen (phase 1) & 9.9 & 11.9 & 18 & 15 & 882 & 0.042 & 96 \\
++Jensen (both phases) & 10.7 & 22.9 & 18 & 15 & 882 & 0.039 & 96 \\
++Jensen x4 (phase 1) & 7.6 & 12.3 & 13 & 10 & 633 & 0.042 & 96 \\
+single-cut (all)$^\dagger$ & 905.3 & 908.6 & 346 & 150 & 346 & 0.113 & 99 \\
+\bottomrule\end{tabular}

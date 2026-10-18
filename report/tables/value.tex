@@ -1,0 +1,12 @@
+\begin{tabular}{@{}lrrrrrrrrr@{}}\toprule
+ & \multicolumn{3}{c}{Regular days ($n=24$)} & Events ($n=7$) & \multicolumn{5}{c}{All days (means)} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-5}\cmidrule(lr){6-10}
+Plan & Regret & s.e. & \% & Regret & On-time & Unmet & Trucks & Crews & Time \\
+ & \EUR{}/day & & & \EUR{}/day & \% & \% & & & s \\ \midrule
+Deterministic (P90) & 121{,}669 & 11{,}256 & 4.91 & 81{,}190 & 91.47 & 0.37 & 702 & 339 & 2.7 \\
+Deterministic (median) & 19{,}277 & 5{,}776 & 0.76 & 23{,}100 & 91.40 & 0.51 & 598 & 290 & 8.3 \\
+SP + seasonal naive & 43{,}799 & 6{,}529 & 1.77 & 1{,}184{,}378 & 88.58 & 3.95 & 527 & 278 & 9.9 \\
+SP + LightGBM (indep.) & 16{,}228 & 4{,}829 & 0.64 & 20{,}586 & 91.51 & 0.52 & 597 & 290 & 21.9 \\
+SP + LightGBM (copula) & 14{,}019 & 3{,}505 & 0.57 & 24{,}138 & 91.55 & 0.56 & 590 & 286 & 8.6 \\
+SP + true distribution & 0 & 0 & 0.00 & 0 & 91.61 & 0.46 & 604 & 293 & 11.8 \\
+\bottomrule\end{tabular}

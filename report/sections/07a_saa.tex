@@ -1,0 +1,44 @@
+\subsection{Statistical quality of the SAA solutions}\label{sec:saa}
+
+How many scenarios are enough?
+For a regular day (5 March 2026) and for Black Friday 2025 we solve $M=10$ independent SAA replications for each $N\in\{10,25,50,100,200,400\}$, with scenarios from the true distribution.
+Every resulting plan is evaluated on the same 5000 fresh scenarios.
+Following \citet{mak1999}:
+\begin{itemize}
+  \item the mean of the $M$ SAA optimal values is a statistical \emph{lower} bound on the true optimum (in expectation), with a $t$-based confidence interval;
+  \item the best out-of-sample value is an \emph{upper} bound.
+\end{itemize}
+
+\begin{table}[t]
+\centering\small
+\caption{SAA bounds ($M=10$ replications per $N$, out-of-sample evaluation on 5000 true scenarios). Gap CI: 95\% upper confidence bound on the optimality gap of the best plan, $(\mathrm{UB}-\mathrm{LB}+\mathrm{hw})/\mathrm{UB}$. Time: mean Benders solve time (24 workers).}\label{tab:saa}
+\resizebox{\linewidth}{!}{\input{tables/saa}}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{saa}
+  \caption{SAA convergence. The plans' true expected cost (orange) stabilises from $N\approx 50$; the lower-bound estimator (blue, 95\% CI) tightens around it as $N$ grows.}
+  \label{fig:saa}
+\end{figure}
+
+\Cref{tab:saa,fig:saa} show that the planning problem is statistically well behaved.
+\begin{itemize}
+  \item The true expected cost of the SAA plans stabilises quickly. Its spread across replications falls from \EUR{2239} per day at $N=10$ to about \EUR{140} at $N\ge 50$, and the plans at $N=100$ and $N=400$ differ by only \EUR{64} per day.
+  \item The estimated optimality gap is statistically indistinguishable from zero for all $N\ge 25$. Its 95\% upper confidence bound falls to 0.3--0.4\% at $N\ge 50$, a level limited by the variance of the lower-bound estimator, not by the quality of the plans.
+\end{itemize}
+We therefore use $N=100$ throughout. Note also the optimisation tolerance of $5\cdot10^{-4}$ (\cref{sec:benders}): it is of the same order as these statistical errors, so solving more tightly would be pointless.
+
+\paragraph{Value of the stochastic solution and of perfect information.}
+\begin{table}[t]
+\centering\small
+\caption{Value of the stochastic solution (VSS $=$ EEV $-$ RP, paired over 5000 scenarios, $\pm$ 95\% CI) and expected value of perfect information (EVPI $=$ RP $-$ WS over 100 scenarios). RP: stochastic plan; EEV: plan for the mean demand; WS: wait-and-see.}\label{tab:vss}
+\resizebox{\linewidth}{!}{\input{tables/vss}}
+\end{table}
+
+\Cref{tab:vss} decomposes the value of information.
+\begin{itemize}
+  \item \textbf{VSS.} The stochastic plan saves \EUR{3.2}k per day on the regular day and \EUR{7.1}k on Black Friday over the plan for mean demand. This is small (0.14\% and 0.15\%) but highly significant.
+  \item \textbf{EVPI.} Perfect information would be worth \EUR{18}--\EUR{23}k per day, six to seven times more. Better \emph{information}, i.e.\ forecasts, matters more than better \emph{modelling of uncertainty}, consistent with \cref{sec:value-forecast}.
+  \item \textbf{Direction of the hedge.} The SP plan buys \emph{fewer} trucks (519 vs.\ 530) and crews (252 vs.\ 257) than the mean-value plan. This is the newsvendor logic. Scheduled capacity costs $c$ and its same-day substitutes cost $1.6c$ (overtime) and $1.8c$ (spot), so the critical ratio $(1.8c-c)/(1.8c)\approx0.44$ is below one half. It is optimal to plan \emph{below} the mean and buy flexibility on the day. A planner who reasons only in terms of point forecasts would build the opposite safety margin. On Black Friday the labour limits bind (425 of 426 crews), so the hedge acts on trucks only.
+\end{itemize}

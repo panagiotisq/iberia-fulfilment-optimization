@@ -1,0 +1,36 @@
+\section{Online order assignment under the day-ahead plan}\label{sec:online}
+
+The day-ahead plan fixes the capacities: $Q y_{ih}$ package-equivalents of scheduled lane capacity, $\pi w_i$ regular labour units, and an overtime allowance of $\rho\pi w_i$.
+During the day, units arrive and must be assigned \emph{irrevocably}, without knowing the rest of the day.
+This is the decision Amazon-style controllers take ``millions of times per hour''.
+The recourse LP of \cref{sec:planning} evaluated on the realised demand is the \emph{hindsight} benchmark.
+It is a lower bound on the cost of any non-anticipative policy that uses the same plan, because every online trajectory is a feasible solution of that LP.
+
+\paragraph{Simulation model.}
+The realised daily demand $\bfd$ (a draw from the true distribution) is split into 96 quarter-hour slots by a Dirichlet-perturbed intraday profile, with a night trough and lunch and evening peaks.
+Within a slot, the batches $(j,k)$ arrive in random order.
+Assigning one unit of $(j,k)$ to FC $i$ consumes one unit of $\mathrm{Inv}_{ik}$, $l_k$ labour units and $v_k$ package-equivalents of lane $(i,h(j))$.
+Regular labour is consumed first, then overtime (at $c^{\mathrm{ot}}$, up to the cap); scheduled truck space is consumed first, then spot space (at $s_{ih}$).
+The \emph{immediate} cost of a unit is therefore
+\[
+  \gamma_{ijk} = c^{\mathrm{fc}}_i + c^{\mathrm{lm}}_j + \lambda\ell_{ij}
+   + c^{\mathrm{ot}} l_k\,\mathbb{1}[\text{regular labour at $i$ exhausted}]
+   + s_{i,h(j)} v_k\,\mathbb{1}[\text{lane $(i,h(j))$ full}].
+\]
+A unit with no feasible FC (no inventory or no labour left anywhere it is stocked) is left unshipped at cost $p+\lambda$.
+Batches are split exactly at the points where a resource changes cost regime, so the simulation is equivalent to unit-by-unit processing within a batch.
+
+\paragraph{Policies.}
+\begin{itemize}
+  \item \textbf{Greedy}: $i^\star=\arg\min_i\gamma_{ijk}$. This is myopic: it depletes the cheap, on-time capacity near the early customers and leaves nothing for later ones.
+  \item \textbf{Static bid prices} \citep{acimovic2015,talluri1998}: at the start of the day, solve the fluid LP, i.e.\ the recourse LP with the full capacities and the forecast demand $\hat\bfd$. Take the shadow prices $\mu\ge0$ of inventory, regular labour, overtime and lane capacity, and assign to
+  \[ i^\star = \arg\min_i\ \gamma_{ijk} + \mu^{\mathrm{inv}}_{ik} + l_k\,\mu^{\mathrm{lab/ot}}_{i} + v_k\,\mu^{\mathrm{lane}}_{i,h(j)}, \]
+  i.e.\ immediate cost plus the opportunity cost of the resources consumed. The labour price is the regular or the overtime one, whichever is currently being consumed; lane prices apply while scheduled space remains.
+  \item \textbf{Re-solved bid prices}: the fluid LP is re-solved every hour with the \emph{remaining} capacities and the \emph{remaining} expected demand. The latter is the forecast times the remaining share of the intraday profile, scaled by an online learning factor per category, $(\text{observed} + a)/(\text{expected so far} + a)$ with $a=2000$ units of shrinkage.
+  \item \textbf{Fluid LP tracking}: with the same hourly re-solves, the units of a batch are split across FCs in proportion to the LP flows $x^\star_{ijk}$, with a greedy fallback when a target FC has run out. This is the fluid-tracking idea behind probabilistic and correlated-rounding schemes \citep{jasin2015}.
+  \item \textbf{Hindsight}: the clairvoyant LP (lower bound).
+\end{itemize}
+The online experiment uses the day-ahead plans of the proposed pipeline (SP with LightGBM + copula scenarios) on all 31 test days.
+It runs 4 demand/arrival replications per day, i.e.\ 124 simulated days per policy, and the policies see the same arrivals (common random numbers).
+
+\input{sections/09_online_results}

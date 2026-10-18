@@ -1,0 +1,38 @@
+\section{Related work}\label{sec:related}
+
+\paragraph{E-commerce fulfilment decisions.}
+\citet{xu2009} showed that periodically re-evaluating order-to-FC assignments made in real time yields substantial savings in an online retailer.
+\citet{acimovic2015} proposed scoring each fulfilment option by its immediate shipping cost plus an estimate of future costs.
+They derived those estimates from the dual values of a transportation LP; on industry data the heuristic captured about a third of the gap to a clairvoyant benchmark.
+\citet{jasin2015} studied multi-item orders and introduced an LP-based correlated rounding scheme, later improved by \citet{ma2023}.
+Our online layer (\cref{sec:online}) follows this LP-dual tradition.
+It is closely related to bid-price controls in network revenue management \citep{talluri1998}, where shadow prices of capacity ration a perishable resource among sequentially arriving requests.
+We embed it in a two-level model in which the capacities themselves are decided the day before under uncertainty.
+
+\paragraph{Two-stage stochastic programming and Benders decomposition.}
+Capacity committed before demand is revealed is the textbook setting for two-stage stochastic programming \citep{birge2011,shapiro2009}.
+Sample average approximation with statistical optimality bounds is analysed by \citet{kleywegt2002} and \citet{mak1999}.
+Benders decomposition \citep{benders1962}, known as the L-shaped method in this context \citep{vanslyke1969}, is the standard solution approach; \citet{rahmaniani2017} survey its many accelerations.
+We combine several of them:
+\begin{itemize}
+  \item multi-cut \citep{birge1988};
+  \item an LP phase \citep{mcdaniel1977};
+  \item in-out stabilisation \citep{benameur2007}, popularised for large facility-location problems by \citet{fischetti2017};
+  \item partial decomposition with artificial mean-value scenarios \citep{crainic2021}.
+\end{itemize}
+Pareto-optimal cuts \citep{magnanti1981} are a natural further extension.
+
+\paragraph{Probabilistic demand forecasting.}
+Global gradient-boosted tree models dominated the M5 competition \citep{makridakis2022}, one of the largest public retail forecasting benchmarks.
+Amazon's own forecasting research produced the DeepAR \citep{salinas2020} and MQ-RNN \citep{wen2017} families, and more recently the Chronos time-series foundation models \citep{ansari2024}.
+Quantile forecasts are evaluated with proper scoring rules \citep{gneiting2007}: the quantile loss for marginals, and the energy and variogram scores \citep{scheuerer2015} for joint distributions.
+Conformal prediction \citep{vovk2005,romano2019} provides distribution-free calibration; under distribution shift it is typically applied in rolling or adaptive form \citep{gibbs2021}.
+We use a Gaussian copula \citep{nelsen2006} with shrinkage estimation \citep{ledoit2004} to turn marginal quantiles into joint scenarios.
+
+\paragraph{From predictions to decisions.}
+The decision-focused learning literature, e.g.\ the ``smart predict-then-optimise'' framework of \citet{elmachtoub2022}, argues that forecasts should be judged by the quality of the decisions they induce.
+Our generative setting lets us measure this directly: every plan is scored by its expected cost under the \emph{true} conditional demand distribution (\cref{sec:value-forecast}).
+
+\paragraph{Multi-objective optimisation.}
+Weighted-sum scalarisation can only reach the \emph{supported} points of a Pareto frontier \citep{ehrgott2005}.
+The (augmented) $\varepsilon$-constraint method \citep{mavrotas2009,mavrotas2013} also recovers the unsupported points, which exist whenever integer variables make the frontier non-convex, as they do with integer trucks.
